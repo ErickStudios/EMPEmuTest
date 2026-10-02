@@ -1,0 +1,73 @@
+<html>
+<head>
+    <title>Emu0</title>
+    <style>
+      button.buttonA1 {
+        border-radius: 10px;
+        border-color: transparent;
+      }
+      button.buttonA1:active {
+        border-color: aliceblue;
+        filter: brightness(0.8) contrast(1.2);
+      }
+      button.buttonA2 {
+        border-radius: 10px;
+        font-size: 60%;
+        border-width: 0%;
+        border-color: transparent;
+      }
+      button.buttonA2:active {
+        border-color: aliceblue;
+        filter: brightness(0.8) contrast(1.2);
+      }
+      button.buttonA2.buttonAlp {
+        background-color: #f6f1bb;
+      }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body style="background-color: black;">
+  <div style="display: none;">
+    <div style="background-color: rgb(205, 204, 188); width: 250px; height: 300px;">
+      <div style="display: block; padding-left: 10%; padding-top: 7%;">
+        <canvas id="video2" width="160" height="120" style="background-color: rgb(80, 80, 160); width: 90%; height: 45%; image-rendering: pixelated;"></canvas>
+      </div>
+      <div style="width: 100%; height: 5%; background-color: rgb(234, 229, 211); margin-top: 2%;"></div>
+      <div style="display: flex; padding-left: 10%; padding-top: 2%;">
+        <div style="display: flexbox; width: 5%; padding-top: 2%; padding-right: 10%;">
+          <button onclick="inputSend(5);" class="buttonA1">O</button>
+          <button onclick="inputSend(4);" class="buttonA1">H</button>
+        </div>
+        <div>
+          <div style="display: flex;">
+            <button onclick="inputSend(0);" class="buttonA1" style="margin-top: 20%; background-color: red;">A</button>
+            <button onclick="inputSend(1);" class="buttonA1" style="margin-top: 0%; margin-bottom: 20%; background-color: green;">B</button>
+            <button onclick="inputSend(2);" class="buttonA1" style="margin-top: 20%; background-color: yellow;">Y</button>
+          </div>
+          <button onclick="inputSend(3);" class="buttonA1" style="margin-top: -15%; margin-left: 35%; background-color: blue;">X</button>
+        </div>
+        <canvas id="lttr" width="8" height="8" style="margin-left: 10%; background-color: rgb(52, 52, 86); width: 20%; height: 10%; image-rendering: pixelated;"></canvas>
+      </div>
+      <div>
+      </div>
+      <style>
+        .alpha {
+          grid-template-columns: repeat(7%, 1fr);
+          gap: 1%;
+        }
+      </style>
+    </div>
+  </div>
+  <canvas id="video" width="160" height="120" style="background-color: rgb(80, 80, 160); width: 640px; height: 480px; position: relative; top: 50%; left: 50%; transform: translate(-50%, -50%); image-rendering: pixelated;"></canvas>
+  <div>
+    <div>
+      <button style="border-color: transparent; background-color: transparent; color: gray;" onclick="step();">Step</button>
+      <button style="border-color: transparent; background-color: transparent; color: gray;" onclick="window.halted = !window.halted;">Run</button>
+    </div>
+    <textarea id="debugLog" style="width: 300px; height: 200px; resize: none; border-color: transparent; color: darkgrey; background-color: black;" readonly></textarea>
+    <p id="debugReg"></p>
+  </div>
+  <script src="index.js" type="module">
+  </script>
+</body>
+</html>

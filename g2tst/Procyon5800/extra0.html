@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor de Sprites 6x6</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #1e1e1e;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 40px);
+            grid-template-rows: repeat(6, 40px);
+            gap: 2px;
+            background: #111;
+            padding: 2px;
+            border: 2px solid #444;
+        }
+        .pixel {
+            background: #000;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            border: 1px solid #333;
+        }
+        .palette {
+            display: grid;
+            grid-template-columns: repeat(2, 40px);
+            gap: 5px;
+        }
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        .color-btn.selected {
+            border-color: #fff;
+            transform: scale(1.1);
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            background: #111;
+            color: #0f0;
+            border: 1px solid #444;
+            font-family: monospace;
+            padding: 8px;
+            margin-top: 10px;
+            resize: none;
+        }
+        .panel {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Editor de Sprites 6x6 (Retro VM)</h2>
+    <div class="container">
+        <!-- Cuadrícula de dibujo 6x6 -->
+        <div class="grid" id="pixelGrid"></div>
+
+        <!-- Paleta de colores -->
+        <div class="palette" id="paletteBox"></div>
+    </div>
+
+    <div style="width: 400px; margin-top: 15px;">
+        <label>Código BigInt generado:</label>
+        <textarea id="outputCode" readonly></textarea>
+    </div>
+
+<script>
+    // Tu misma paleta vdclr
+    let vdclr = [
+        '#000','#888',
+        '#800','#740',
+        '#880','#680',
+        '#228','#508',
+        '#444','#ddd',
+        '#f44','#d80',
+        '#cc0','#9f4',
+        '#79e','#548'
+    ];
+
+    let selectedColorIndex = 0;
+    // Matriz de 6x6 para almacenar los índices de color (0 a 15)
+    let pixelData = Array(6).fill(0).map(() => Array(6).fill(0));
+
+    const gridEl = document.getElementById('pixelGrid');
+    const paletteEl = document.getElementById('paletteBox');
+    const outputEl = document.getElementById('outputCode');
+
+    // 1. Construir la paleta visual en la UI
+    vdclr.forEach((color, index) => {
+        let btn = document.createElement('div');
+        btn.className = 'color-btn' + (index === 0 ? ' selected' : '');
+        btn.style.backgroundColor = color;
+        btn.onclick = () => {
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedColorIndex = index;
+        };
+        paletteEl.appendChild(btn);
+    });
+
+    // 2. Construir la cuadrícula de 6x6 píxeles
+    let pixelElements = [];
+    for (let y = 0; y < 6; y++) {
+        pixelElements[y] = [];
+        for (let x = 0; x < 6; x++) {
+            let px = document.createElement('div');
+            px.className = 'pixel';
+            px.onclick = () => {
+                pixelData[y][x] = selectedColorIndex;
+                px.style.backgroundColor = vdclr[selectedColorIndex];
+                updateOutput();
+            };
+            gridEl.appendChild(px);
+            pixelElements[y][x] = px;
+        }
+    }
+
+    // 3. Traducir la cuadrícula actual a tu formato BigInt de 144 bits
+    function updateOutput() {
+        let rows = [];
+        
+        for (let y = 0; y < 6; y++) {
+            // Cada fila tiene 6 píxeles (nibbles). Se agrupan de a 2 píxeles por byte (3 bytes por fila).
+            let b0 = (pixelData[y][0] << 4) | pixelData[y][1];
+            let b1 = (pixelData[y][2] << 4) | pixelData[y][3];
+            let b2 = (pixelData[y][4] << 4) | pixelData[y][5];
+
+            let rowVal = (b0 << 16) | (b1 << 8) | b2;
+            rows.push(BigInt(rowVal));
+        }
+
+        // Empaquetar las 6 filas en un solo BigInt de 144 bits (idéntico a tu lógica)
+        let finalSprite = (
+            (rows[0] << (24n * 5n)) |
+            (rows[1] << (24n * 4n)) |
+            (rows[2] << (24n * 3n)) |
+            (rows[3] << (24n * 2n)) |
+            (rows[4] << 24n) |
+            rows[5]
+        );
+
+        outputEl.value = 'byte ' + rows.map(v => {
+            let ab = v.toString(16).padStart(6, '0');
+            return `0x${ab.substring(0,2)}` + ',' + `0x${ab.substring(2,4)}` + ',' + `0x${ab.substring(4,6)}`
+        }).join(',');
+    }
+
+    updateOutput();
+</script>
+</body>
+</html>
