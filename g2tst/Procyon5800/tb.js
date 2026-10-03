@@ -57,11 +57,12 @@ let pc = 0xFFC;
 let sp = 0xF00;
 let lif = false;
 let rtins = 0;
-let card = emp.g2asm.parseAsm(await loadFile('./play0.asm')).result;
+//let card = emp.g2asm.parseAsm(await loadFile('./play0.asm')).result;
+let card = null;
 let ram0 = new Array(0x800).fill(0);
 let tmpm0 = new Array(0x80).fill(0);
 let vram = new Array(16*12).fill(0).map(v => Math.floor(Math.random() * 255))
-let spritePalette = Array.from({ length: 256 }, () => {
+/*let spritePalette = Array.from({ length: 256 }, () => {
   let bra = new Array(6).fill(0).map(v => Math.floor(Math.random() * 0xFFFFFF));
   
   let nara = 0n;
@@ -71,7 +72,127 @@ let spritePalette = Array.from({ length: 256 }, () => {
   })
 
   return nara;
-});
+});*/
+let spritePalette = Array.from({length: 256}).fill(0x004004040040400400004004040040400400n)
+
+class AudioChip {
+    constructor() {
+        /** @type {AudioContext} */
+        this.channels = [];
+        this.currentChannel = 0;
+        this.inited = false;
+
+        this.ids = {
+            0: 'square',
+            1: 'triangle',
+            2: 'sawtooth'
+        }
+    }
+    mk() {
+        if(!this.ctx) this.init();
+        if(this.ctx.state==='suspended') this.ctx.resume();
+    }
+    init() {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        for(let i=0;i<3;i++){
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            gain.gain.value = 0;
+            osc.type = 'square';
+            osc.start();
+            osc.connect(gain).connect(this.ctx.destination);
+            this.channels.push({osc, gain, playing: false});
+        }
+    }
+    // Switching Channel
+    switchWorkChannel(id) {
+        this.mk();
+        this.currentChannel = id;
+    }
+    // Switching Channels Types
+    switchWorkChType(tyid) {
+        this.mk();
+        this.channels[this.currentChannel].osc.type = this.ids[tyid];
+    }
+    // Switch Channel Freq
+    switchChannelFreq(frq) {
+        this.mk();
+        let freq = 440 * Math.pow(2, (frq - 69)/12);
+        let ch = this.channels[this.currentChannel];
+        if (frq == 0) {
+            ch.gain.gain.setValueAtTime(0, this.ctx.currentTime)
+        }
+        else {
+            ch.osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            ch.gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+        }
+    }
+}
+
+let chipau = new AudioChip()
+
+// 32-90
+let knowPresets = [
+    8920298079412249256614287309059344602392166n, 
+    15615766992419042319382111975940763866668290n, 
+    7469232289288274397751043687098606264876003n, 
+    17893010735169183420827786141513975415189187n, 
+    13990814860393207691334345053723199205418078n, 
+    21242170041124002114977823202992213893977395n, 
+    17178876671240306773596173445415313810296328n, 
+    10524697141599196668456554404557390679647914n, 
+    16824158440523766177791032181077207702711610n, 
+    14884731601484014940869563384685621367499605n, 
+    6289433244729929518100689571123423499429662n,
+    2616393690038795753299822611830834817664566n,
+    18782368333028513589898824743837284871725966n, 
+    22269809851305591585124856150005965874388688n, 
+    8868208170514763938318130693206535386327034n, 
+    14825585677948142892819273184564627488078377n, 
+    8966576522862015437210442209684058660073062n, 
+    8923020341106026955970107187713994782043750n, 
+    8966576522862012961330216605394625985703654n, 
+    8966576522862012961330225828766115231624934n, 
+    8920468220768110362824173625437230123607782n, 
+    9663644951489416839227103151424244206726886n, 
+    9663644951489416839227250725385629976162022n, 
+    9663655543775639435281589970419889501791846n, 
+    8966576522862013125139812196705762035035750n, 
+    8966576522862013125744127532551690852953702n, 
+    10038807053747859380247721581572670436284771n, 
+    7311786643932067622056768936555866629703582n, 
+    499665579558274991763979587238791646573344n, 
+    6601079450228775110035089572298844599224067n, 
+    3362223214217757565677933081195402317636439n, 
+    21474225251967866134814552571412127682796151n, 
+    12917742128085691624446403997749824150221108n, 
+    8966576522862015437210452009516847818761958n, 
+    9663474810316097574797344873293887717699174n, 
+    8966746664035334701035885115939687164735206n, 
+    9663474810316097410383433405704319957659238n, 
+    9663644951489416839227250689356830809714406n, 
+    9663644951489416839227250689356830809679462n, 
+    8966746664035334711311754618692834316185190n, 
+    8920298120960767806179433062906127342003942n, 
+    8920298082008397685881710346697179377624678n, 
+    20814017511812499484827816223769329648199270n, 
+    8963854224974911789852104808089797460944494n, 
+    8963854224974277963947527207120980071083758n, 
+    20070682018664714676082935823155524310296174n, 
+    20070682018654573461609704007487271737910894n,
+    8966576522862015437210442209684058660073062n, 
+    9663474810316097410383443169508309949376102n, 
+    9663475433391757572766141540624902623522414n, 
+    9663474810316097410383443169508344309114598n, 
+    8966746664035332379898164494388633522335334n, 
+    9663655543937264895877632866219922574175846n, 
+    9617207042229308678611001957317499804905190n, 
+    9617207042229308678611001957309255480929894n, 
+    20070681977116198438588577491978105246901990n, 
+    8920298744036390839425543947233298880030438n, 
+    8920298744036390839425543947225018174727782n,
+    0x6666666eeee66666e6666e6666e6666eeee6n
+]
 
 let vdclr = [
     '#000','#888',
@@ -213,6 +334,7 @@ let prt_dev = {
     cardSector: 0,
     cardBytesReaded: 0,
     efectiveVideoModAdr: 0,
+    chipausfx: 0,
 
     // Port Data Read
     in(port) {
@@ -221,8 +343,12 @@ let prt_dev = {
             return card[this.cardIndex + (port - 3)];
         }
 
+        if (port == 0x00) {
+            return Array.isArray(card) ? 0x00 : 0xFF;
+        }
+
         else if (port == 0x40) {
-            return kybuf.shift();
+            return kybuf.shift() ?? 0;
         }
 
         return 0;
@@ -246,6 +372,18 @@ let prt_dev = {
         }
         else if (port == 0x200) {
             this.efectiveVideoModAdr = data;
+        }
+        else if (port == 0x50) {
+            chipau.switchWorkChannel(data);
+        }
+        else if (port == 0x51) {
+            chipau.switchWorkChType(data)
+        }
+        else if (port == 0x52) {
+            this.chipausfx = data;
+        }
+        else if (port == 0x53) {
+            chipau.switchChannelFreq((this.chipausfx << 8) | data);
         }
         else if (port == 0x201) {
             gpuMake((this.efectiveVideoModAdr << 8) | data);
@@ -361,32 +499,104 @@ Sectors Readed  : ${Math.floor(prt_dev.cardBytesReaded / 512)}
 
 step();
 
-videoctx.canvas.addEventListener('click', () => {
-    videoctx.canvas.focus();
-});
+document.getElementById("console").focus();
 
-videoctx.canvas.addEventListener('keydown', (ev) => {
+let keysmap = {
+    'A': 1,
+    'B': 2,
+    'X': 3,
+    'Y': 4,
+    'W': 5,
+    'Z': 6,
+    'L': 7,
+    'J': 8,
+    'V': 10,
+    'N': 12,
+    'ENTER': 10,
+    'O': () => window.cpuReset(),
+}
+   
+function geKey(ev) {
+    let k = ev.key.toUpperCase();
+    if(k in keysmap){
+        ev.preventDefault();
+        if(typeof keysmap[k] == 'function') keysmap[k]();
+        else kybuf.push(keysmap[k]);
+    }
+}
+
+//document.getElementById("console").addEventListener('keyup', geKey);
+document.getElementById("console").addEventListener('keydown', geKey);
+//document.getElementById("console").addEventListener('keypress', geKey);
+
+/*videoctx.canvas.addEventListener('keydown', (ev) => {
     if (ev.key.length == 1) {
         kybuf.push(ev.key.toUpperCase().charCodeAt(0))
     } else if (ev.key == 'Enter') {
+        chipau.switchWorkChannel(0);
+        chipau.switchWorkChType(0);
+        chipau.switchChannelFreq(400);
         kybuf.push(10)
     }
-})
+})*/
 
+/** @type {HTMLInputElement} */
 const input = document.getElementById('CardSdSelect');
 const label = document.getElementById('cardName');
 
 input.addEventListener('change', async (e)=>{
+ /** @type {File} */
   const file = e.target.files[0];
+
   if(!file) return;
-  label.textContent = file.name.slice(0,13).toUpperCase();
-  const buf = await file.arrayBuffer();
-  card = new Uint8Array(buf);
-  prt_dev.cardBytesReaded = 0;
+  let isAsm = file.name.toLowerCase().endsWith('.asm') || file.name.toLowerCase().endsWith('.s')
+
+  if (isAsm) {
+    label.textContent = file.name.toUpperCase().split('.')[0];
+    const buf = await file.text();
+    card = emp.g2asm.parseAsm(buf).result;
+    prt_dev.cardBytesReaded = 0;
+    console.log(card.length)
+  }
+  else {
+    label.textContent = file.name.slice(0,13).toUpperCase();
+    const buf = await file.arrayBuffer();
+    card = new Uint8Array(buf);
+    prt_dev.cardBytesReaded = 0;
+  }
 });
 
+let vramcp = []
+
+window.cpuPau = function() {
+    if (!window.halted) {
+        videoctx.canvas.style.filter = 'brightness(0.4)'
+    }
+    else {
+        videoctx.canvas.style.filter = 'brightness(1)'
+    }
+
+    window.halted = !window.halted;
+}
+
 window.cpuReset = function() {
+    videoctx.canvas.style.filter = 'brightness(1)'
+
+    spritePalette.fill(0x004004040040400400004004040040400400n);
     window.halted = true;
+    for (let index = 32; index < 91; index++) {
+        spritePalette[index] = knowPresets[index - 32];
+    }
+
+    ram0.fill(0);
+    tmpm0.fill(0);
+    vram.fill(0)
+    let x = new TextEncoder().encode('NO CARD0');
+
+    for (let index = 0; index < x.length; index++) {
+        vram[16*5+4+index] = Number(x[index]);
+    }
+
     cpu.rst();
     pc = 0xFFC;
     sp = 0xF00;
@@ -395,14 +605,18 @@ window.cpuReset = function() {
     kybuf.splice(0, kybuf.length);
 }
 
+window.cpuReset()
+
 window.sendIonj = function(s) {
     kybuf.push(s)
 }
 
+window.palette = spritePalette
+
 // Cpu Instruction Autoexecuted
 setInterval(function () {
     if (!window.halted) {
-        for (let index = 0; index < 400; index++) {
+        for (let index = 0; index < 3200; index++) {
             step();
         }
     }
