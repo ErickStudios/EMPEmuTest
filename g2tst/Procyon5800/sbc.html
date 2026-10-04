@@ -43,7 +43,9 @@
 
     <div id="console" style="margin-left: calc(50% - (550px / 2)); background-color: rgb(31, 31, 31); width: 550px; height: 490px">
 
-        <canvas tabindex="0" id="videomem" width="96" height="72" style="padding: 5%; width: 90%; height: 67%; background-color: rgb(69, 69, 69); image-rendering: pixelated;"></canvas>
+        <div style="display: block; background-color: rgb(69, 69, 69);;">
+            <canvas tabindex="0" id="videomem" width="96" height="72" style="margin: 5%; width: 90%; height: 67%; background-color: rgb(0, 0, 0); image-rendering: crisp-edges;"></canvas>
+        </div>
 
         <div style="display: flex; width: 92%; height: 40%; padding: 2%; margin-top: 1%; padding-left: calc(54% - (100% / 2));">
             <div style="border-radius: 10px; border-color: rgb(111, 111, 111); border-style: solid; width: 100%; height: 30%; padding: 1%; background-color: rgb(35, 35, 35); display: block;">
@@ -78,6 +80,12 @@
         </div>
         
     </div>
+
+    <p>O = BRK</p>
+    <p>F = FULL SCREEN</p>
+    <p>K = LOCK POINTER</p>
+    <p>E = EXPULSE CARD</p>
+    <p>I = INSERT CARD</p>
 
     <div style="display: none;">
         <!--Logger-->

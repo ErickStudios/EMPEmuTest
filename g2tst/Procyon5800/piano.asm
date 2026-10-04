@@ -78,7 +78,7 @@ logical:
 
 .tol:
     lda %z $__margin
-    tia $120
+    tia $100
     lcf $2
     bcf $.nr
 

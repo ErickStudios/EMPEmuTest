@@ -118,16 +118,21 @@ cls:
     sbz %z $500h
 
 start:
+    cha $1
+    sba %z $443h
 
+render:
     sbz %z $501h
     jmp $cls
-
-.lp:
-    lba %z $440h ; keyboard status
+    lba %z $442h
+    mul $16
+    lbx %z $441h
+    add %a %x
+    chy $'X'
+    sby %a $340h
+.sleep:
+    lba %z $430h ; screen is give the signal to a comming refresh
     tsa %z
     lcf $1
-    bcf $.lp
-
-    sbz %z $501h
-    jmp $tty
-    jmp $.lp
+    bcf $.sleep
+    jmp $render

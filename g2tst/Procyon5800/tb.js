@@ -52,6 +52,15 @@ async function loadFile(fnam) {
 
 let cpu = new emp.cpuGen2();
 
+let isDraggin = false;
+let showingCursor = false;
+let pentouchx = 0;
+let pentouchy = 0;
+let startpx = 0;
+let startpy = 0;
+let countQuedRender = 1000;
+let maxRenderRegresiveCountValue = countQuedRender;
+let showerMouseHs = true;
 let kybuf = [];
 let pc = 0xFFC;
 let sp = 0xF00;
@@ -280,7 +289,17 @@ function render() {
     }
   }
 
-    requestAnimationFrame(render);
+  if (showingCursor && showerMouseHs) {
+    videoctx.fillStyle = '#ffffff';
+    
+    if (isDraggin) {
+        videoctx.fillRect(Math.ceil(Math.ceil(pentouchx) * 6),Math.ceil(Math.ceil(pentouchy) * 6),6,6);
+    }
+    else {
+        if (new Date().getMilliseconds() < 500) videoctx.fillStyle = '#ffffff77'
+        videoctx.fillRect(Math.ceil(Math.ceil(pentouchx) * 6),Math.ceil(((pentouchy) * 6) + 4),4,2);
+    }
+  }
 }
 
 render()
@@ -347,9 +366,17 @@ let prt_dev = {
             return Array.isArray(card) ? 0x00 : 0xFF;
         }
 
+        else if (port == 0x30) {
+            return Number(countQuedRender > (maxRenderRegresiveCountValue / 1.2));
+        }
+
         else if (port == 0x40) {
             return kybuf.shift() ?? 0;
         }
+
+        if(port == 0x41) return showingCursor ? Math.ceil(pentouchx) : 0
+        if(port == 0x42) return showingCursor ? Math.ceil(pentouchy) : 0
+        if(port == 0x43) return isDraggin && showingCursor ? 1 : 0;
 
         return 0;
     },
@@ -366,6 +393,9 @@ let prt_dev = {
         }
         else if (port == 5) {
             this.cardIndex += data;
+        }
+        else if (port == 0x43) {
+            showingCursor = Boolean(data & 1);
         }
         else if (port == 0x101) {
             lif = true;
@@ -518,12 +548,36 @@ let keysmap = {
    
 function geKey(ev) {
     let k = ev.key.toUpperCase();
+    if (k == 'K') {
+        videoctx.canvas.requestPointerLock();
+    }
+
+    else if (k == 'E') {
+        card = null;
+    }
+
+    else if (k == 'M') {
+        showerMouseHs = !showerMouseHs;
+    }
+
+    else if (k == 'I') {
+        document.getElementById('CardSdSelect').click()
+    }
+
     if(k in keysmap){
         ev.preventDefault();
         if(typeof keysmap[k] == 'function') keysmap[k]();
         else kybuf.push(keysmap[k]);
     }
 }
+
+videoctx.canvas.addEventListener('pointerlockchange', () => {
+  if(document.pointerLockElement === videoctx.canvas){
+    isDraggin = true;
+  } else {
+    isDraggin = false;
+  }
+});
 
 //document.getElementById("console").addEventListener('keyup', geKey);
 document.getElementById("console").addEventListener('keydown', geKey);
@@ -591,6 +645,10 @@ window.cpuReset = function() {
     ram0.fill(0);
     tmpm0.fill(0);
     vram.fill(0)
+
+    pentouchx = 0;
+    pentouchy = 0;
+    showingCursor = false;
     let x = new TextEncoder().encode('NO CARD0');
 
     for (let index = 0; index < x.length; index++) {
@@ -607,6 +665,70 @@ window.cpuReset = function() {
 
 window.cpuReset()
 
+let clientXa = 0;
+let clientYa = 0;
+
+videoctx.canvas.addEventListener('mousedown', (ev) => {
+    isDraggin = true;
+
+    startpx = Math.floor(pentouchx);
+    startpy = Math.floor(pentouchy);
+    clientXa = ev.clientX;
+    clientYa = ev.clientY;
+});
+
+window.addEventListener('mouseup', () => {
+    isDraggin = false;
+    if (Math.floor(pentouchx) == startpx && Math.floor(pentouchy) == startpy) {
+        console.log('click');
+    }
+});
+
+window.addEventListener('touchstart', () => {
+    isDraggin = true;
+})
+
+videoctx.canvas.addEventListener('mousemove', (ev) => {
+    if (showingCursor) {
+    if(document.pointerLockElement === videoctx.canvas){
+        pentouchx += ev.movementX / 25;
+        pentouchy += ev.movementY / 25;
+
+        pentouchx = Math.max(0, Math.min(15, pentouchx));
+        pentouchy = Math.max(0, Math.min(11, pentouchy));
+
+    } else if(isDraggin) {
+        let deltaX = ev.clientX - clientXa;
+        let deltaY = ev.clientY - clientYa;
+        pentouchx += deltaX / 25;
+        pentouchy += deltaY / 25;
+
+        pentouchx = Math.max(0, Math.min(15, pentouchx));
+        pentouchy = Math.max(0, Math.min(11, pentouchy));
+
+        clientXa = ev.clientX;
+        clientYa = ev.clientY;
+    }
+    }
+});
+
+function goFullscreen(){
+  let c = videoctx.canvas;
+  if(c.requestFullscreen) c.requestFullscreen();
+  else if(c.webkitRequestFullscreen) c.webkitRequestFullscreen();
+}
+
+function exitFullscreen(){
+  if(document.exitFullscreen) document.exitFullscreen();
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'f' || e.key === 'F'){
+    if(!document.fullscreenElement) goFullscreen();
+    else exitFullscreen();
+  }
+});
+
 window.sendIonj = function(s) {
     kybuf.push(s)
 }
@@ -616,8 +738,12 @@ window.palette = spritePalette
 // Cpu Instruction Autoexecuted
 setInterval(function () {
     if (!window.halted) {
-        for (let index = 0; index < 3200; index++) {
+        for (let index = 0; index < 1600; index++) {
             step();
+            if (countQuedRender == 0) {
+                countQuedRender = maxRenderRegresiveCountValue;
+                render();
+            } else countQuedRender--;
         }
     }
 }, 50);
