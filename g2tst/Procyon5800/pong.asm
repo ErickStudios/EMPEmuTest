@@ -27,6 +27,14 @@ render:
 
     sbz %x $(340h+14+16)
 
+    lba %z $score1
+    add $48
+    sba %z $(340h+6+16)
+
+    lba %z $score2
+    add $48
+    sba %z $(340h+8+16)
+
     lba %z $paly
     mul $16
     lbx %z $palx
@@ -124,8 +132,30 @@ logical:
     bcf $.y1
     jmp $.ce1
 .y1:
-    jmp $.y1
+    lba %z $score1
+    add $1
+    sba %z $score1
 .ce1:
+
+; ** colision player 2 **
+    lba %z $player2
+    lbx %z $paly
+    add $1
+    tsa %x
+    lcf $1
+    bcf $.cc2
+    jmp $.ce2
+.cc2:
+    lba %z $palx
+    tia $13
+    lcf $1
+    bcf $.y2
+    jmp $.ce2
+.y2:
+    lba %z $score2
+    add $1
+    sba %z $score2
+.ce2:
 
 .li:
 
@@ -164,13 +194,19 @@ logical:
     bcf $.waitr
     jmp $render
 
-player1 byte 3 ; pos y
-player2 byte 3 ; pos y
 gc      byte 0  ; game make
+
+; ball informations
 palx    byte 8  ; ball x
 paly    byte 5  ; ball y
 dirx    byte 1  ; ball dir x
 diry    byte 0  ; ball dir y
+
+; players informations
+player1 byte 4 ; pos y
+player2 byte 4 ; pos y
+score1  byte 0  ; p1 score
+score2  byte 0  ; p2 score
 
 assets:
     byte 0, 0, 2

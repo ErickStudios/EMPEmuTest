@@ -4,32 +4,64 @@
  * CLOCK: ~32kHz board stepper
  * 
  * MEMORY MAP - MMU 4K MIRROR (FFF=EOF, 1234h->234h)
+ * 
+ * **************************************************
+ * MEM_CHIP REGIONS OF MEMORY PYSHICAL
+ * **************************************************
  * 080-0FF = STD TEMP (128B aux regs, cleared on BRK)
  * 100-33F = RESERVED (for 8-pin NVRAM programmer)
  * 340-3FF = TILE VRAM 16x12 = 192 bytes (C0h)
- * 400-6FF = DEVICES MMIO
+ * 400-6FF = DEVICES MMIO (LOGICAL_CHIP OWNS THIS REGION)
  * 700-EFF = USER RAM 2K (code+data, cleared on BRK)
  * F00-FFB = STD ROM (NO CARD0 firmware)
  * FFC-FFF = RESET VEC (JMP F00h)
- * FFF     = MEM EOF -> triggers BRK
+ * FFF     = MEM EOF PYSHIC SPACE END + LAST BYTE OF ROM
  * 
- * MMIO 400-6FF:
- * 401 W WORD - SET SECTOR CARD0
- * 403 R WORD - READ 2 BYTES CARD0 (big endian)
- * 405 W BYTE - STEP READER
- * 430 R BYTE - GPU_SOON FLAG (WARN before REFRESH-REST, anti-tear)
- * 440 R BYTE - KBD queue pop/shift / push
- * 441 R BYTE - LIGHTPEN X
- * 442 R BYTE - LIGHTPEN Y
- * 443 W BYTE - LIGHTPEN CTRL 0b0000000C (C=disable)
- * 450 W BYTE - SND CW select
- * 451 W BYTE - SND WAVE type
- * 452 W WORD - SND FREQ
- * 500 W BYTE - RET (pop PC, value dont care)
- * 501 W BYTE - LINK (push PC for next JMP)
- * 600 W BYTE - GPU ACTION 00=REPLACE P2 presets FROM P1
+ * **************************************************
+ * LOGICAL_CHIP ABSOLUTE ADDRESSE FROM THE START MMIO ZONE
+ * **************************************************
  * 
- * BUTTONS: BRK=cold reset (uninterceptable), A=01h B=02h X=03h Y=04h V=0Ah N=0Bh
+ * 401 _W WORD - SET SECTOR CARD0
+ * 403 R_ WORD - READ 2 BYTES CARD0 (big endian)
+ * 405 _W BYTE - STEP READER
+ * 430 R_ BYTE - GPU_SOON FLAG (WARN before REFRESH-REST, anti-tear)
+ * 440 R_ BYTE - KBD queue pop/shift / push
+ * 441 R_ BYTE - LIGHTPEN X
+ * 442 R_ BYTE - LIGHTPEN Y
+ * 443 _W BYTE - LIGHTPEN CTRL 0b0000000C (C=disable)
+ * 450 _W BYTE - SND CW select
+ * 451 _W BYTE - SND WAVE type
+ * 452 _W WORD - SND FREQ
+ * 500 _W BYTE - RET (pop PC, value dont care)
+ * 501 _W BYTE - LINK (push PC for next JMP)
+ * 600 _W BYTE - GPU ACTION FROM ADDRESS STRUCT IN MEMORY (#GPU-MAK)
+ * 
+ * BUTTONS:     BRK=cold reset (uninterceptable), 
+ *              A=01h 
+ *              B=02h 
+ *              X=03h 
+ *              Y=04h 
+ *              V=0Ah 
+ *              N=0Bh 
+ *              L=07h
+ *              W=05h
+ *              Z=06h
+ *              J=08h
+ * 
+ * PCB GPU-MAK ROUTINE
+ *      BYTE (PTR OFFSET 0) AS ACTION
+ *      BYTE (PTR OFFSET 1) AS PARAM1
+ *      BYTE (PTR OFFSET 2) AS PARAM2
+ * 
+ *      MULTIPLEX WITH ACTION
+ *          CASE EQUALS 0:
+ *              REG GPU_I AS CLONE PARAM1
+ *              REG MPTR AS (PTR OFFSET 3)
+ *              REPEAT $PARAM2 TIMES
+ *                  REPLACE GPU TILE PRESET GPU_I WITH *MPTR[0:17] ++18
+ *                  GPU_I = GPU_I + 1
+*       ENDMULTIPLEX
+*       RETURN_CONTROL
  * 
  * FONT PERSISTENCE:
  * NVRAM holds 256 tiles. MASK ROM hidden holds 0,65-90 (0 + A-Z + 0)
@@ -38,13 +70,13 @@
  *           VRAM = fill 0 + write "NO CARD0" phrase using tiles 65-90
  * 
  * BRK ROUTINE (hw wired):
- *   CLR-REST + CLEAR 080-0FF + CLEAR 700-EFF + PC=FFCh + START STEPPER
+ *      CLR-REST + CLEAR 080-0FF + CLEAR 700-EFF + PC=FFCh + START STEPPER
  * 
  * STEPPER LOOP (board master, CPU slave):
- *   1. MEM_CHIP read 3 bytes @ PC -> 24b bus BE -> CPU
- *   2. save bit23 -> CPU ACTION -> if READ/WRITE -> MEM_CHIP
- *   3. PC+= (bit23?3:2) except on JMP -> PC=ADDR-(bit23?3:2)
- *   4. GPU_COUNTER-- ; if <=WARN -> set 430=1 ; if ==0 -> REFRESH-REST + reload counter
+ *      1. MEM_CHIP read 3 bytes @ PC -> 24b bus BE -> CPU
+ *      2. save bit23 -> CPU ACTION -> if READ/WRITE -> MEM_CHIP
+ *      3. PC+= (bit23?3:2) except on JMP -> PC=ADDR-(bit23?3:2)
+ *      4. GPU_COUNTER-- ; if <=WARN -> set 430=1 ; if ==0 -> REFRESH-REST + reload counter
  * 
  * REFRESH-REST: LCD reads 16x12 VRAM, each byte = index to NVRAM tile bitmap
  */
@@ -59,6 +91,7 @@ const dbglog = document.getElementById('debugLog')
 const input = document.getElementById('CardSdSelect');
 const label = document.getElementById('cardName');
 const board = document.getElementById("console");
+const cardstyle = document.getElementById('CardSdSelectStyle');
 let videoctx = document.getElementById('videomem').getContext('2d');
 let startpx = 0;
 let startpy = 0;
@@ -77,21 +110,18 @@ let pentouchx = 0;
 let pentouchy = 0;
 let showerMouseHs = true;
 let kybuf = [];
-
+let turbo_mode = false;
 let pc = 0xFFC;
 let sp = 0xF00;
 let lif = false;
 let rtins = 0;
-
 let card = null;
 let ram0 = new Array(0x800).fill(0);
 let tmpm0 = new Array(0x80).fill(0);
-
 let countQuedRender = 1000;
 let maxRenderRegresiveCountValue = countQuedRender;
 let vram = new Array(16*12).fill(0).map(v => Math.floor(Math.random() * 255))
 let spritePalette = new Array(256).fill(0x004004040040400400004004040040400400n)
-
 let rom = emp.g2asm.parseAsm(await loadFile('./bios.asm')).result
 let vdclr = ['#000','#888','#800','#740','#880','#680','#228','#508','#444','#ddd','#f44','#d80','#cc0','#9f4','#aae','#548']
 let LogicalChip = {
@@ -407,6 +437,9 @@ function CPUJumpMake(adr) {
     // Calculate PC
     pc = adr - ((rtins & 0x800000) == 0x800000 ? 3 : 2);
 }
+function EMULATORAlternateTurbo() {
+    turbo_mode = !turbo_mode;
+}
 function EMULATORInit() {
     cpu.jf =            CPUJumpMake;
     cpu.rex =           CPUReadMake;
@@ -414,6 +447,7 @@ function EMULATORInit() {
 
     window.cpuReset =   EMULATORReset;
     window.cpuPau =     CPUPause;
+    window.turboalt =   EMULATORAlternateTurbo;
 
     window.halted =     true;
     window.step =       LOGICStep;
@@ -430,7 +464,7 @@ function EMULATORKeyIntercept(ev) {
     }
 
     else if (k == 'E') {
-        card = null;
+        CARD0Eject();
     }
 
     else if (k == 'M') {
@@ -458,32 +492,43 @@ function exitFullscreen(){
   if(document.exitFullscreen) 
     document.exitFullscreen();
 }
+function CARD0Eject() {
+    cardstyle.title = 'click to insert a card of bit by inverted binary braile';
+    card = null;
+    cardstyle.className = 'cardNoPresent';
+}
 // Emulator Pointer Locking
 videoctx.canvas.addEventListener('pointerlockchange', () => {
   isDraggin = (document.pointerLockElement === videoctx.canvas)
 });
 // Emulator Insert Card0
 input.addEventListener('change', async (e)=>{
+    /** @type {File} */
   const file = e.target.files[0];
 
   // If File Pressent
   if(file) {
+        cardstyle.className = 'cardInserted';
+
         let isAsm = file.name.toLowerCase().endsWith('.asm') || file.name.toLowerCase().endsWith('.s')
         let cardVrtName = file.name.toUpperCase();
+        let that = cardVrtName.slice(0, 13);
 
         // Compilation Of Assembler
         if (isAsm) {
-            label.textContent = cardVrtName.split('.')[0];
+            that = cardVrtName.split('.')[0];
             card = emp.g2asm.parseAsm((await file.text())).result;
             LogicalChip.cardBytesReaded = 0;
             console.log(card.length)
         }
         else {
-            label.textContent = cardVrtName.slice(0,13);
-
-            card = new Uint8Array(await file.arrayBuffer());
+            const buf = await file.arrayBuffer();
+            card = Array.from(new Uint8Array(buf));
             LogicalChip.cardBytesReaded = 0;
+            console.log(card.length)
         }
+
+        cardstyle.title = 'click to eject ' + that
     }
 });
 board.addEventListener('keydown', EMULATORKeyIntercept);
@@ -536,6 +581,16 @@ document.addEventListener('keydown', e => {
 window.sendIonj = function(s) {
     kybuf.push(s)
 }
+cardstyle.addEventListener('click', () => {
+    if (card) {
+        CARD0Eject();
+    }
+    else { 
+        document.getElementById('CardSdSelect').click();
+    }
+})
+
+cardstyle.title = 'click to insert a card of bit by inverted binary braile';
 
 window.palette = spritePalette
 
@@ -545,7 +600,7 @@ EMULATORReset();
 // Cpu Instruction Autoexecuted
 setInterval(function () {
     if (!window.halted) {
-        for (let index = 0; index < 1600; index++) {
+        for (let index = 0; index < 1600 * (turbo_mode ? 10 : 1); index++) {
             LOGICStep();
             GPUCHIPStep();
         }
