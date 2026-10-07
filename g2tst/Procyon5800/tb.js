@@ -48,20 +48,9 @@
  *              Z=06h
  *              J=08h
  * 
- * PCB GPU-MAK ROUTINE
- *      BYTE (PTR OFFSET 0) AS ACTION
- *      BYTE (PTR OFFSET 1) AS PARAM1
- *      BYTE (PTR OFFSET 2) AS PARAM2
- * 
- *      MULTIPLEX WITH ACTION
- *          CASE EQUALS 0:
- *              REG GPU_I AS CLONE PARAM1
- *              REG MPTR AS (PTR OFFSET 3)
- *              REPEAT $PARAM2 TIMES
- *                  REPLACE GPU TILE PRESET GPU_I WITH *MPTR[0:17] ++18
- *                  GPU_I = GPU_I + 1
-*       ENDMULTIPLEX
-*       RETURN_CONTROL
+ * GPU-MAK: &PTR[ACTION, P1, P2, ...]
+ *          ACTION 1: replaces of#P2 tile presets from P1 each tile map is 4 bits per pixel, and is a 6x6 pixels (18 bytes)
+ *          ACTION 2: replace of#P2 using color from #P1 for each set is the index of real color of motherboard
  * 
  * FONT PERSISTENCE:
  * NVRAM holds 256 tiles. MASK ROM hidden holds 0,65-90 (0 + A-Z + 0)
@@ -84,7 +73,7 @@
 import { AudioChip } from './audio.js'
 import { knowPresets } from './gpuchip.js'
 import { loadFile } from './helper.js'
-import * as emp from "https://cdn.jsdelivr.net/gh/ErickStudios/EMP-Arch@72578d959d6312e3fd5f69bfc5e3fdb0509125c5/Toolchain/libemp.js?v=200"
+import * as emp from "https://cdn.jsdelivr.net/gh/ErickStudios/EMP-Arch@55971303eb5030f82f4e7577b3d9108a67323397/Toolchain/libemp.js?v=200"
 
 // HTML Parameters for emulator
 const dbglog = document.getElementById('debugLog')
@@ -123,7 +112,8 @@ let maxRenderRegresiveCountValue = countQuedRender;
 let vram = new Array(16*12).fill(0).map(v => Math.floor(Math.random() * 255))
 let spritePalette = new Array(256).fill(0x004004040040400400004004040040400400n)
 let rom = emp.g2asm.parseAsm(await loadFile('./bios.asm')).result
-let vdclr = ['#000','#888','#800','#740','#880','#680','#228','#508','#444','#ddd','#f44','#d80','#cc0','#9f4','#aae','#548']
+let vdclrPre = ['#000','#888','#800','#740','#880','#680','#228','#508','#444','#ddd','#f44','#d80','#cc0','#9f4','#aae','#548']
+let vdclr = [...vdclrPre]
 let LogicalChip = {
     // MMIO Space
     baseAddr:           0x400,
@@ -327,6 +317,19 @@ function GPUCHIPMake(adr) {
         }
 
     }
+    // Change Color Global Scheme
+    if (action == 1) {
+        let from = cpu.rex(adr + 1);
+        let count = cpu.rex(adr + 2);
+
+        let ptr = adr + 3;
+        while (count != 0) {
+            vdclr[from] = vdclrPre[cpu.rex(ptr)];
+            ptr++;
+            from++;
+            count--;
+        }
+    }
 }
 function GPUCHIPStep() {
     if (countQuedRender == 0) {
@@ -353,9 +356,11 @@ function EMULATORReset() {
         spritePalette[index] = knowPresets[index - 32];
     }
 
+    vdclr = [...vdclrPre]
+
     ram0.fill(0);
     tmpm0.fill(0);
-    vram.fill(0)
+    vram.fill(32)
 
     pentouchx = 0;
     pentouchy = 0;

@@ -5,6 +5,11 @@
     
     jmp $lba_read ; 0f00h
 
+;lta:
+    ;byte 1, 0, 16
+    ;byte 0, 1, 9, 9, 8, 8, 0, 8, 8, 9, 0, 0, 0, 0, 9, 0
+
+
     ; X = SECTOR, Y = BUFFER
 lba_read:
     stx %z $401h
@@ -24,6 +29,9 @@ lba_read:
 
 start:
 .check:
+    ;chy $lta
+    ;sty %z $600h
+
     lba %z $400h  ; el estado de el almacenamiento interno
     tia $0ffh       ; si esta ausente
     lcf $1          ; cargar

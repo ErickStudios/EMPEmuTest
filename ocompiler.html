@@ -1,0 +1,104 @@
+<html>
+<head>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+  body {
+    background: #0f0f0f;
+    color: #c7bb75;
+    font-family: 'JetBrains Mono', monospace;
+    place-items: center;
+    min-height: 90vh;
+    margin: 0;
+  }
+  header {
+    background: #6f865a;
+    width: 100%;
+    display: flex;
+    padding-block: 1%;
+  }
+  p.imgLg {
+    color: #cbedb3;
+    margin: 0;
+    font-size: 150%;
+    font-family: 'JetBrains Mono', monospace, bold;
+  }
+  h2 { letter-spacing: -1px; margin: 0; color: #e8e0a0; }
+  h2 span { color: #9dc073; }
+  p { color: #635353; font-size: 13px; margin-top: 8px; }
+
+  button {
+    background: #a2e671;
+    color: rgb(0, 0, 0);
+    border: 1px solid #576d36;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  button:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+  <header>
+    <img src="markarianlog.png" style="width: 3%;">
+    <p class="imgLg">Markarian</p>
+  </header>
+
+  <h1>Assemblers List</h1>
+  <div>
+    <div style="display: flex;">
+      <h2>for <span>EMP gen 1-based</span></h2> 
+      <button onclick="asmGeneration(1);">Select File<b/utton>
+    </div>
+    <div style="display: flex;">
+      <h2>for <span>EMP gen 2-based</span></h2> 
+      <button onclick="asmGeneration(2);">Select File<b/utton>
+    </div>
+
+  </div>
+    <input type="file" id="SrcFs" hidden accept=".asm,.emp">
+    <div id="status">READY_</div>
+
+  <script type="module">
+  import * as emp from "https://cdn.jsdelivr.net/gh/ErickStudios/EMP-Arch@55971303eb5030f82f4e7577b3d9108a67323397/Toolchain/libemp.js?v=200"
+
+  const srcfs = document.getElementById('SrcFs');
+  const status = document.getElementById('status');
+
+  let compiler = () => ({result: []})
+  let gensComps = {
+    1: emp.compiler.make,
+    2: emp.g2asm.parseAsm,
+  }
+
+  function compileToRawBinaryBytes(textAsm) {
+      return new Uint8Array(compiler(textAsm).result);
+  }
+
+  window.asmGeneration = function(gen) {
+    compiler = gensComps[gen]
+    srcfs.click()
+  }
+
+  async function handleFile(file){
+      if(!file) return;
+      status.textContent = `COMPILING ${file.name}...`;
+      try {
+          const textAsm = await file.text();
+          const rawBytes = compileToRawBinaryBytes(textAsm);
+          status.textContent = `OK: ${rawBytes.length} BYTES -> ${file.name.replace(/\.asm$/i, '.bin')}`;
+
+          const blob = new Blob([rawBytes], {type: 'application/octet-stream'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = file.name.replace(/\.asm$/i, '.bin'); a.click();
+          setTimeout(()=> URL.revokeObjectURL(url), 2000);
+      } catch(e) {
+          status.textContent = `ASM ERROR: ${e.message}`;
+          console.error(e);
+      }
+  }
+
+  srcfs.addEventListener('change', ev => handleFile(ev.target.files[0]));
+  </script>
+</body>
+</html>

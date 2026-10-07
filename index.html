@@ -1,73 +1,101 @@
 <html>
 <head>
-    <title>Emu0</title>
-    <style>
-      button.buttonA1 {
-        border-radius: 10px;
-        border-color: transparent;
-      }
-      button.buttonA1:active {
-        border-color: aliceblue;
-        filter: brightness(0.8) contrast(1.2);
-      }
-      button.buttonA2 {
-        border-radius: 10px;
-        font-size: 60%;
-        border-width: 0%;
-        border-color: transparent;
-      }
-      button.buttonA2:active {
-        border-color: aliceblue;
-        filter: brightness(0.8) contrast(1.2);
-      }
-      button.buttonA2.buttonAlp {
-        background-color: #f6f1bb;
-      }
-    </style>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<title>Markarian Collection Site</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+  body {
+    background: #0f0f0f;
+    color: white;
+    place-items: center;
+    min-height: 90vh;
+    margin: 0;
+  }
+  header {
+    background: #6f865a;
+    width: 100%;
+    display: flex;
+    padding-block: 1%;
+  }
+  p.imgLg {
+    font-family: 'JetBrains Mono', monospace, bold;
+    color: #cbedb3;
+    margin: 0;
+    font-size: 150%;
+    font-family: 'JetBrains Mono', monospace, bold;
+  }
+  div.Section {
+    text-align: center;
+  }
+  div.Section h1 {
+    font-family: 'JetBrains Mono', monospace, bold;
+    color: #cbedb3;
+  }
+  div.Section p {
+    font-family: 'JetBrains Mono', monospace, bold;
+    text-align: left;
+  }
+  div.Section ul {
+    text-align: left;
+  }
+  div.Section li a {
+    font-family: 'JetBrains Mono', monospace, bold;
+    color: #549c21;
+  }
+</style>
 </head>
-<body style="background-color: black;">
-  <div style="display: none;">
-    <div style="background-color: rgb(205, 204, 188); width: 250px; height: 300px;">
-      <div style="display: block; padding-left: 10%; padding-top: 7%;">
-        <canvas id="video2" width="160" height="120" style="background-color: rgb(80, 80, 160); width: 90%; height: 45%; image-rendering: pixelated;"></canvas>
-      </div>
-      <div style="width: 100%; height: 5%; background-color: rgb(234, 229, 211); margin-top: 2%;"></div>
-      <div style="display: flex; padding-left: 10%; padding-top: 2%;">
-        <div style="display: flexbox; width: 5%; padding-top: 2%; padding-right: 10%;">
-          <button onclick="inputSend(5);" class="buttonA1">O</button>
-          <button onclick="inputSend(4);" class="buttonA1">H</button>
-        </div>
-        <div>
-          <div style="display: flex;">
-            <button onclick="inputSend(0);" class="buttonA1" style="margin-top: 20%; background-color: red;">A</button>
-            <button onclick="inputSend(1);" class="buttonA1" style="margin-top: 0%; margin-bottom: 20%; background-color: green;">B</button>
-            <button onclick="inputSend(2);" class="buttonA1" style="margin-top: 20%; background-color: yellow;">Y</button>
-          </div>
-          <button onclick="inputSend(3);" class="buttonA1" style="margin-top: -15%; margin-left: 35%; background-color: blue;">X</button>
-        </div>
-        <canvas id="lttr" width="8" height="8" style="margin-left: 10%; background-color: rgb(52, 52, 86); width: 20%; height: 10%; image-rendering: pixelated;"></canvas>
-      </div>
-      <div>
-      </div>
-      <style>
-        .alpha {
-          grid-template-columns: repeat(7%, 1fr);
-          gap: 1%;
-        }
-      </style>
-    </div>
+<body>
+  <header>
+    <img src="markarianlog.png" style="width: 3%;">
+    <p class="imgLg">Markarian</p>
+  </header>
+
+  <h3>ErickCraftStudios at this site, provides sources, extras and emulators</h3>
+
+  <div class="Section">
+    <h1>Emulators</h1>
+    <p>I dream of synthesizing my hardware, but for now I emulate my boards in JS to share my ideas of weird consoles.</p>
+    <details open>
+      <summary>Emulators list</summary>
+      <ul>
+        <li><a href="g2tst/Procyon5800/sbc.html">Procyon5800 - 16-bit handheld with 4K MMU</a></li>
+      </ul>
+    </details>
   </div>
-  <canvas id="video" width="160" height="120" style="background-color: rgb(80, 80, 160); width: 640px; height: 480px; position: relative; top: 50%; left: 50%; transform: translate(-50%, -50%); image-rendering: pixelated;"></canvas>
-  <div>
-    <div>
-      <button style="border-color: transparent; background-color: transparent; color: gray;" onclick="step();">Step</button>
-      <button style="border-color: transparent; background-color: transparent; color: gray;" onclick="window.halted = !window.halted;">Run</button>
-    </div>
-    <textarea id="debugLog" style="width: 300px; height: 200px; resize: none; border-color: transparent; color: darkgrey; background-color: black;" readonly></textarea>
-    <p id="debugReg"></p>
+
+  <div class="Section">
+    <h1>Extras</h1>
+    <p>This section provides extras that markarian creates</p>
+    <details open>
+      <summary>Desplegable list of our Sources</summary>
+      <ul>
+        <li><a href="ocompiler.html">EMP Arch based ISAs Online Programs Assembler, from the first generation of EMP CPU Based ISAs to the newest generation</a></li>
+        <li><a href="https://github.com/ErickStudios/Clamp">Clamp (Prototype interpreter so older)</a></li>
+        <li><a href="https://github.com/ErickStudios/Markarian-VirtualUEFI">MarkarianVirtual UEFI that is more like to a uefi of temu hehe</a></li>
+        <li><a href="https://github.com/ErickStudios/Lim22">The most elaborated interpreter, Lima/Lima++ interpreter, Lim22</a></li>
+        <li><a href="https://github.com/ErickStudios/KellyBootloader">KellyBootloader a bootloader that has my first attempt to make a Instruction Set Architecture</a></li>
+        <li><a href="https://github.com/ErickStudios/BananaPlusPlus">Another attempt to make a interpretable language, Banana++ interpreter</a></li>
+        <li><a href="https://github.com/ErickStudios/mixinos.io">A game like Shifter.io</a></li>
+        <li><a href="https://github.com/ErickStudios/ModuKernel">ModuKernel, a modular kernel</a></li>
+        <li><a href="https://github.com/ErickStudios/ClaicyScript">ClaicyScript, Another interpreter but based in ast</a></li>
+        <li><a href="https://github.com/ErickStudios/NacOS16">NacOS16, the more lassy attempt to make a OS of 16 bits, and my first 80386 real mode OS</a></li>
+        <li><a href="https://github.com/ErickStudios/NacOS32">NacOS32, the same of NacOS16, but is protected mode, and dont have another thing that a jit compiler of a own low level language</a></li>
+        <li><a href="https://github.com/ErickStudios/MilpaOS">MilpaOS, mi first OS with scheduler</a></li>
+      </ul>
+    </details>
   </div>
-  <script src="index.js" type="module">
-  </script>
+
+  <div class="Section">
+    <h1>Sources</h1>
+    <p>At this site we provides different sources of, CPU Free Models, Tools, and experimental games for testing what our designs can do</p>
+    <details open>
+      <summary>Desplegable list of our Sources</summary>
+      <ul>
+        <li><a href="https://raw.githubusercontent.com/ErickStudios/EMP-Arch/refs/heads/main/cpu.v">EMP Generation 1 CPUs Verilog Source</a></li>
+        <li><a href="https://raw.githubusercontent.com/ErickStudios/EMP-Arch/refs/heads/main/cpu2.v">EMP Generation 2 CPUs Verilog Source</a></li>
+        <li><a href="https://raw.githubusercontent.com/ErickStudios/Pulsar16-architecture/refs/heads/main/cpu.v">Pulsar16 Architecture Verilog Source</a></li>
+      </ul>
+    </details>
+  </div>
+
 </body>
 </html>
