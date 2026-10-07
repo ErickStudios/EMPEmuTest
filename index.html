@@ -1,55 +1,82 @@
 <html>
 <head>
 <title>Markarian Collection Site</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
   body {
     background: #0f0f0f;
     color: white;
-    place-items: center;
     min-height: 90vh;
     margin: 0;
+    font-family: 'JetBrains Mono', monospace;
   }
   header {
     background: #6f865a;
     width: 100%;
     display: flex;
-    padding-block: 1%;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    box-sizing: border-box;
   }
   p.imgLg {
-    font-family: 'JetBrains Mono', monospace, bold;
     color: #cbedb3;
     margin: 0;
     font-size: 150%;
-    font-family: 'JetBrains Mono', monospace, bold;
+    font-weight: 700;
   }
   div.Section {
-    text-align: center;
+    max-width: 900px;
+    margin: 32px auto;
+    padding: 0 20px;
   }
   div.Section h1 {
-    font-family: 'JetBrains Mono', monospace, bold;
+    color: #cbedb3;
+    text-align: center;
+  }
+  div.Section h2 {
     color: #cbedb3;
   }
   div.Section p {
-    font-family: 'JetBrains Mono', monospace, bold;
     text-align: left;
+    line-height: 1.6;
+    color: #ddd;
   }
   div.Section ul {
     text-align: left;
   }
+  div.Section li {
+    margin: 8px 0;
+  }
   div.Section li a {
-    font-family: 'JetBrains Mono', monospace, bold;
     color: #549c21;
+    text-decoration: none;
+  }
+  div.Section li a:hover {
+    text-decoration: underline;
+    color: #7dd63a;
+  }
+  summary {
+    cursor: pointer;
+    color: #cbedb3;
+    font-weight: 700;
+  }
+  h3.subtitle {
+    text-align: center;
+    color: #aaa;
+    font-weight: 400;
   }
 </style>
 </head>
 <body>
   <header>
-    <img src="markarianlog.png" style="width: 3%;">
+    <img src="markarianlog.png" style="width: 40px; height: 40px;">
     <p class="imgLg">Markarian</p>
+    <span style="color:#cbedb3; font-size:90%;">hardware and software distributor of ErickCraftStudios</span>
   </header>
 
-  <h3>ErickCraftStudios at this site, provides sources, extras and emulators</h3>
+  <h3 class="subtitle">ErickCraftStudios at this site, provides sources, extras and emulators</h3>
 
   <div class="Section">
     <h1>Emulators</h1>
@@ -57,43 +84,48 @@
     <details open>
       <summary>Emulators list</summary>
       <ul>
-        <li><a href="g2tst/Procyon5800/sbc.html">Procyon5800 - 16-bit handheld with 4K MMU</a></li>
+        <li><a href="g2tst/Procyon5800/sbc.html">Procyon5800 - 16-bit handheld with 4K MMU - Pong Demo 5-0 [EMP Gen2]</a></li>
       </ul>
     </details>
   </div>
 
   <div class="Section">
     <h1>Extras</h1>
-    <p>This section provides extras that markarian creates</p>
+    <p>This section provides extras that Markarian creates</p>
     <details open>
-      <summary>Desplegable list of our Sources</summary>
+      <summary>Extras list</summary>
       <ul>
-        <li><a href="ocompiler.html">EMP Arch based ISAs Online Programs Assembler, from the first generation of EMP CPU Based ISAs to the newest generation</a></li>
-        <li><a href="https://github.com/ErickStudios/Clamp">Clamp (Prototype interpreter so older)</a></li>
-        <li><a href="https://github.com/ErickStudios/Markarian-VirtualUEFI">MarkarianVirtual UEFI that is more like to a uefi of temu hehe</a></li>
-        <li><a href="https://github.com/ErickStudios/Lim22">The most elaborated interpreter, Lima/Lima++ interpreter, Lim22</a></li>
-        <li><a href="https://github.com/ErickStudios/KellyBootloader">KellyBootloader a bootloader that has my first attempt to make a Instruction Set Architecture</a></li>
-        <li><a href="https://github.com/ErickStudios/BananaPlusPlus">Another attempt to make a interpretable language, Banana++ interpreter</a></li>
-        <li><a href="https://github.com/ErickStudios/mixinos.io">A game like Shifter.io</a></li>
-        <li><a href="https://github.com/ErickStudios/ModuKernel">ModuKernel, a modular kernel</a></li>
-        <li><a href="https://github.com/ErickStudios/ClaicyScript">ClaicyScript, Another interpreter but based in ast</a></li>
-        <li><a href="https://github.com/ErickStudios/NacOS16">NacOS16, the more lassy attempt to make a OS of 16 bits, and my first 80386 real mode OS</a></li>
-        <li><a href="https://github.com/ErickStudios/NacOS32">NacOS32, the same of NacOS16, but is protected mode, and dont have another thing that a jit compiler of a own low level language</a></li>
-        <li><a href="https://github.com/ErickStudios/MilpaOS">MilpaOS, mi first OS with scheduler</a></li>
+        <li><a href="ocompiler.html">EMP Arch based ISAs Online Assembler - from Gen1 to newest Gen</a></li>
+        <li><a href="https://github.com/ErickStudios/Clamp">Clamp (Prototype interpreter)</a></li>
+        <li><a href="https://github.com/ErickStudios/Markarian-VirtualUEFI">Markarian Virtual UEFI - temu-like uefi hehe</a></li>
+        <li><a href="https://github.com/ErickStudios/Lim22">Lim22 - The most elaborated interpreter, Lima/Lima++</a></li>
+        <li><a href="https://github.com/ErickStudios/KellyBootloader">KellyBootloader - my first attempt at an ISA</a></li>
+        <li><a href="https://github.com/ErickStudios/BananaPlusPlus">Banana++ interpreter</a></li>
+        <li><a href="https://github.com/ErickStudios/mixinos.io">mixinos.io - game like Shifter.io</a></li>
+        <li><a href="https://github.com/ErickStudios/ModuKernel">ModuKernel - modular kernel</a></li>
+        <li><a href="https://github.com/ErickStudios/ClaicyScript">ClaicyScript - AST based interpreter</a></li>
+        <li><a href="https://github.com/ErickStudios/NacOS16">NacOS16 - my first 16-bit / 386 real mode OS</a></li>
+        <li><a href="https://github.com/ErickStudios/NacOS32">NacOS32 - protected mode with own low-level jit</a></li>
+        <li><a href="https://github.com/ErickStudios/MilpaOS">MilpaOS - my first OS with scheduler</a></li>
       </ul>
     </details>
   </div>
 
   <div class="Section">
     <h1>Sources</h1>
-    <p>At this site we provides different sources of, CPU Free Models, Tools, and experimental games for testing what our designs can do</p>
+    <p>At this site we provide free models of CPUs, tools, and experimental games for testing what our designs can do.</p>
+    
+    <h2>Open Hardware - MIT</h2>
+    <p>If you have the means and want to help me by synthesizing my architectures in FPGA or real metal and copper, thank you so much. 
+    If you prefer to test them in Verilog or virtual Verilog, thank you too for helping grow this open hardware model by Markarian.</p>
+
     <details open>
-      <summary>Desplegable list of our Sources</summary>
+      <summary>Source list - MIT Open Hardware</summary>
       <ul>
-        <li><a href="https://github.com/ErickStudios/EMP-Arch/blob/main/cpu.v">EMP Generation 1 CPUs Verilog Source (MIT)</a></li>
-        <li><a href="https://github.com/ErickStudios/EMP-Arch/blob/main/cpu2.v">EMP Generation 2 CPUs Verilog Source (MIT)</a></li>
-        <li><a href="https://github.com/ErickStudios/Pulsar16-architecture/blob/main/cpu.v">Pulsar16 Architecture Verilog Source (MIT)</a></li>
-        <li><a href="https://github.com/ErickStudios/Pulsar64-32_architecture/blob/main/CpuSource/BuildCpu/PackedCpu.v">Pulsar64&32 Architecture Verilog Source (MIT)</a></li>
+        <li>EMP Gen1 (8-bit) - <a href="https://github.com/ErickStudios/EMP-Arch/blob/main/cpu.v">view</a> / <a href="https://raw.githubusercontent.com/ErickStudios/EMP-Arch/main/cpu.v">raw .v</a></li>
+        <li>EMP Gen2 (16-bit) - <a href="https://github.com/ErickStudios/EMP-Arch/blob/main/cpu2.v">view</a> / <a href="https://raw.githubusercontent.com/ErickStudios/EMP-Arch/main/cpu2.v">raw .v</a></li>
+        <li>Pulsar16 - <a href="https://github.com/ErickStudios/Pulsar16-architecture/blob/main/cpu.v">view</a> / <a href="https://raw.githubusercontent.com/ErickStudios/Pulsar16-architecture/main/cpu.v">raw .v</a></li>
+        <li>Pulsar64&32 - <a href="https://github.com/ErickStudios/Pulsar64-32_architecture/blob/main/CpuSource/BuildCpu/PackedCpu.v">view</a> / <a href="https://raw.githubusercontent.com/ErickStudios/Pulsar64-32_architecture/main/CpuSource/BuildCpu/PackedCpu.v">raw .v</a></li>
       </ul>
     </details>
   </div>

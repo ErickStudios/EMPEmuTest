@@ -81,6 +81,7 @@ const input = document.getElementById('CardSdSelect');
 const label = document.getElementById('cardName');
 const board = document.getElementById("console");
 const cardstyle = document.getElementById('CardSdSelectStyle');
+const statar = document.getElementById('statar');
 let videoctx = document.getElementById('videomem').getContext('2d');
 let startpx = 0;
 let startpy = 0;
@@ -383,6 +384,28 @@ function LOGICStep() {
     let ins = [cpu.rex(pc), cpu.rex(pc+1), cpu.rex(pc+2)];
     rtins = ((ins[0] << 16) | (ins[1] << 8) | ins[2])
 
+    // Instruction Disasembler
+    if (window.halted) {
+        statar.textContent = `Card0 Controller
+
+Index           : ${LogicalChip.cardIndex}
+Sector          : ${LogicalChip.cardSector}
+Bytes Readed    : ${LogicalChip.cardBytesReaded}
+Sectors Readed  : ${Math.ceil(LogicalChip.cardBytesReaded / 512)}
+Steps for refresh:${countQuedRender}
+
+`
+
+        // Calculate Instruccion Size
+        let rta = (rtins & 0x800000) == 0x800000 ? ins.slice(0, 3) : ins.slice(0, 2);
+
+        // Show Instruction info
+        dbglog.textContent += pc.toString(16).padStart(4, '0').toUpperCase() + ' ' + rta.map(v => v.toString(16).padStart(2,'0')).join('').toUpperCase().padEnd(8, ' ') +  emp.g2asm.LineDisasm(ins)+ "\n";
+    
+        document.getElementById('regDbg').textContent = `A=${cpu.getRegister(0).toString(16).padStart(4, '0')} X=${cpu.getRegister(1).toString(16).padStart(4, '0')} Y=${cpu.getRegister(2).toString(16).padStart(4, '0')} Z=${cpu.getRegister(3).toString(16).padStart(4, '0')} F=${cpu.flags.join('')}`
+        dbglog.scrollTop = dbglog.scrollHeight;
+    }
+
     let kat = cpu.exi(rtins);
     pc = pc + kat
 }
@@ -455,7 +478,10 @@ function EMULATORInit() {
     window.turboalt =   EMULATORAlternateTurbo;
 
     window.halted =     true;
-    window.step =       LOGICStep;
+    window.step =       function () { 
+        LOGICStep();
+        GPUCHIPStep();
+    }
 
     cpu.rst();
     LOGICStep();
@@ -601,6 +627,7 @@ window.palette = spritePalette
 
 EMULATORInit();
 EMULATORReset();
+window.halted = true;
 
 // Cpu Instruction Autoexecuted
 setInterval(function () {
