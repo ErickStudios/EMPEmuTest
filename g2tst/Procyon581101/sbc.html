@@ -1,0 +1,177 @@
+<html>
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body {
+            background: #0f0f0f;
+            color: white;
+            min-height: 90vh;
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        header {
+            background: #6f865a;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            box-sizing: border-box;
+        }
+        p.imgLg {
+            color: #cbedb3;
+            margin: 0;
+            font-size: 150%;
+            font-weight: 700;
+        }
+        button.buttona {
+            background: #c0cd32; border: 2px solid #868f21; border-radius: 20px; margin-top: 2px;
+            width: 34px; height: 25px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 0 #5a5f16;
+        }
+        button.buttona:active { transform: translateY(2px); box-shadow: 0 1px 0 #5a5f16; }
+        button.buttonb {
+            background: #4932cd; border: 2px solid #21278f; border-radius: 10px; margin-top: 2px;
+            width: 32px; height: 25px; color: white; cursor: pointer; box-shadow: 0 3px 0 #151a5e;
+        }
+        button.buttonb:active { transform: translateY(2px); box-shadow: none; }
+        button.buttong {
+            background: #51cd32; border: 2px solid #288f21; border-radius: 10px; margin-top: 2px;
+            height: 25px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 0 #1a5f16;
+        }
+        button.buttong:active { transform: translateY(2px); box-shadow: none; }
+        button.onbutta {
+            background: #635353; border: 2px solid #383232; border-radius: 10px;
+            min-width: 52px; height: 30px; color: #e9e9e9; font-weight: 700; cursor: pointer;
+        }
+        /* CARD0 Inverted Binary Braile Cylinder - 1 mm per bit */
+        button.cardInserted {
+            border-radius: 10px;
+            background-color: #c7bb75;
+            border-color: #c5c59a;
+        }
+        /* CARD0 no card */
+        button.cardNoPresent {
+            border-radius: 10px;
+            border-style: solid;
+            background-color: #1f1e1e;
+            border-color: #0f0f0f;
+        }
+        #console {
+            width: 560px; background: linear-gradient(180deg, #2a2a2a 0%, #1f1f1f 100%);
+            border-radius: 28px; padding: 18px; border: 3px solid #3a3a3a;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+  <header>
+    <img src="../../markarianlog.png" style="width: 40px; height: 40px;">
+    <p class="imgLg">Markarian</p>
+    <span style="color:#cbedb3; font-size:90%;">hardware and software distributor of ErickCraftStudios</span>
+  </header>
+
+    <script src="tb.js" type="module"></script>
+
+    <div id="console" style="margin:0 auto; margin-top:3%; width:380px; height:auto; padding:18px; border-radius:28px; background:linear-gradient(180deg,#2a2a2a 0%,#1f1f1f 100%); border:3px solid #3a3a3a;">
+
+    <div style="background:#454545; width:95%; margin:0 auto; padding:2%; border-radius:8px;">
+        <canvas tabindex="0" id="videomem" width="96" height="72" style="width:100%; background:#000; image-rendering:pixelated; display:block;"></canvas>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:4px; margin-top:10px;">
+        <button onclick="sendIonj(49)" class="buttonb">1</button>
+        <button onclick="sendIonj(50)" class="buttona">2</button>
+        <button onclick="sendIonj(51)" class="buttonb">3</button>
+        <button onclick="sendIonj(52)" class="buttona">4</button>
+        <button onclick="sendIonj(53)" class="buttonb">5</button>
+        <button onclick="sendIonj(54)" class="buttona">6</button>
+        <button onclick="sendIonj(55)" class="buttonb">7</button>
+        <button onclick="sendIonj(56)" class="buttona">8</button>
+        <button onclick="sendIonj(57)" class="buttonb">9</button>
+        <button onclick="sendIonj(48)" class="buttona">0</button>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:4px; margin-top:6px;">
+        <button onclick="sendIonj(81)" class="buttona">Q</button>
+        <button onclick="sendIonj(87)" class="buttona">W</button>
+        <button onclick="sendIonj(69)" class="buttona">E</button>
+        <button onclick="sendIonj(82)" class="buttona">R</button>
+        <button onclick="sendIonj(84)" class="buttona">T</button>
+        <button onclick="sendIonj(89)" class="buttona">Y</button>
+        <button onclick="sendIonj(85)" class="buttona">U</button>
+        <button onclick="sendIonj(73)" class="buttona">I</button>
+        <button onclick="sendIonj(79)" class="buttona">O</button>
+        <button onclick="sendIonj(80)" class="buttona">P</button>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:4px; margin-top:4px;">
+        <button onclick="sendIonj(65)" class="buttonb">A</button>
+        <button onclick="sendIonj(83)" class="buttonb">S</button>
+        <button onclick="sendIonj(68)" class="buttonb">D</button>
+        <button onclick="sendIonj(70)" class="buttonb">F</button>
+        <button onclick="sendIonj(71)" class="buttonb">G</button>
+        <button onclick="sendIonj(72)" class="buttonb">H</button>
+        <button onclick="sendIonj(74)" class="buttonb">J</button>
+        <button onclick="sendIonj(75)" class="buttonb">K</button>
+        <button onclick="sendIonj(76)" class="buttonb">L</button>
+        <button onclick="sendIonj(10)" class="buttong">ENT</button>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:4px; margin-top:4px;">
+        <button onclick="sendIonj(90)" class="buttona">Z</button>
+        <button onclick="sendIonj(88)" class="buttona">X</button>
+        <button onclick="sendIonj(67)" class="buttona">C</button>
+        <button onclick="sendIonj(86)" class="buttona">V</button>
+        <button onclick="sendIonj(66)" class="buttona">B</button>
+        <button onclick="sendIonj(78)" class="buttona">N</button>
+        <button onclick="sendIonj(77)" class="buttona">M</button>
+        <button onclick="sendIonj(32)" class="buttong" style="width:80px;">SPACE</button>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:12px; margin-top:12px; align-items:center;">
+        <button class="buttong" onclick="cpuPau()">PAU</button>
+        <button class="onbutta" onclick="cpuReset()">BRK</button>
+        <button class="buttong" onclick="turboalt()">TRB</button>
+        <div style="display:flex; border:2px solid #5c5c5c; border-radius:10px; background:#424242; padding:3px; align-items:center;">
+        <span style="font-size:10px; margin:0 6px;">C0</span>
+        <input type="file" id="CardSdSelect" hidden>
+        <button id="CardSdSelectStyle" class="cardNoPresent">.</button>
+        </div>
+    </div>
+    </div>
+
+    <div style="padding-top: 1%; text-align: center; margin: 0 auto; color: #51cd32; display: block;">
+        <button id="ShowInfo" class="buttong">DebugInfo</button>
+        <button class="buttong" style="margin: 0 auto;" onclick="gfulls();">FullScreen</button>
+
+        <script>
+            const buttona = document.getElementById('ShowInfo');
+            buttona.onclick = function() {
+                const DbgState = document.getElementById('DbgState');
+                let Showing = DbgState.style.display;
+
+                if (Showing == 'none') {
+                    Showing = 'block';
+                }
+                else Showing = 'none';
+
+                DbgState.style.display = Showing;
+            }
+        </script>
+    </div>
+    <div id="DbgState" style=" display: none;">
+        <!--Logger-->
+        <textarea id="debugLog" style="width: 300px; height: 200px; resize: none; color: green; background-color: black;" readonly></textarea>
+        <textarea id="statar" style="width: 300px; height: 200px; resize: none; color: rgb(187, 187, 187); background-color: black;" readonly></textarea>
+        <!--Button Area-->
+        <div style="display: flex;">
+            <!--Button Of Cpu Stepper-->
+            <button onclick="step();">Step</button>
+            <!--Button Of Pause Or Resume-->
+            <button onclick="window.halted = !window.halted;">Run/Halt</button>
+
+            <p id="regDbg"></p>
+        </div>
+    </div>
+</body>
+</html>

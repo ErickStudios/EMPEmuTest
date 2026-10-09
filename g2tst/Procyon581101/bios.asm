@@ -32,8 +32,10 @@ start:
     lba %z $400h ; check if card0 present
     tia $0ffh ; not present value
     lcf $1 ; if is equal
-    bcf $.check ; check again
+    bcf $.nocard0 ; check again
     
+    sbz %z $440h ; keyboard compatibility mode
+
     sub %x %x ; sector 0
     chy $700h ; buffer at ram start
     sbz %z $501h ; link at next flag
@@ -43,6 +45,11 @@ start:
     jmp $lba_read ; read sector
 
     jmp $700h ; jump to 700
+
+.nocard0:
+    chx $0ffffh ; new mem limit
+    stx %z $470h ; set mem limit
+    jmp $1000h ; jump to ROM2 (built-in basic)
 
     rsv (0fch-$)
     jmp $start

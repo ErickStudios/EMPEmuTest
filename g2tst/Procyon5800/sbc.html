@@ -72,13 +72,25 @@
 
     <script src="tb.js" type="module"></script>
 
-    <div id="console" style="margin: 0 auto; margin-top: 1%; background-color: rgb(31, 31, 31); width: 530px; height: 420px; padding-top: 2.5%; border-radius: 20px; box-shadow: #0f0f0f;">
+    <div id="console" style="margin: 0 auto; margin-top: 1%; background-color: rgb(31, 31, 31); width: 530px; height: 480px; padding-top: 2%; padding-bottom: 2%; border-radius: 20px; box-shadow: #0f0f0f;">
 
         <div style="display: block; background-color: rgb(69, 69, 69); width: 90%; margin-left: calc(50% - (90% / 2)); margin-top: 0%;">
             <canvas tabindex="0" id="videomem" width="96" height="72" style="margin: 5%; width: 90%; height: 67%; background-color: rgb(0, 0, 0); image-rendering: pixelated;"></canvas>
         </div>
 
-        <div style="display: flex; width: 92%; height: 60%; padding: 2%; margin-top: 0.05%; padding-left: calc(54% - (100% / 2));">
+        <div style="display: flex; width: 45%; padding: 0 auto; margin-left: calc(50% - (45% / 2)); ">
+            <button onclick="sendIonj(21);" class="buttonb">1</button>
+            <button onclick="sendIonj(22);" class="buttona">2</button>
+            <button onclick="sendIonj(23);" class="buttonb">3</button>
+            <button onclick="sendIonj(24);" class="buttona">4</button>
+            <button onclick="sendIonj(25);" class="buttonb">5</button>
+            <button onclick="sendIonj(26);" class="buttona">6</button>
+            <button onclick="sendIonj(27);" class="buttonb">7</button>
+            <button onclick="sendIonj(28);" class="buttona">8</button>
+            <button onclick="sendIonj(29);" class="buttonb">9</button>
+            <button onclick="sendIonj(20);" class="buttona">0</button>
+        </div>
+        <div style="display: flex; width: 92%; height: 50%; padding: 2%; margin-top: 0.05%; padding-left: calc(54% - (100% / 2));">
             <div style="border-radius: 10px; border-color: rgb(111, 111, 111); border-style: solid; width: 100%; height: 30%; padding: 1%; background-color: rgb(35, 35, 35); display: block;">
                 <div style="display: flex; width: 80%; height: 50%; padding-left: calc(50% - (80% / 2));">
                     <button onclick="sendIonj(10);" class="buttong">V</button>

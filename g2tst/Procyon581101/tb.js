@@ -1,5 +1,5 @@
 /**
- * PROCYON5800 HANDHELD GAME CONSOLE
+ * PROCYON581101 LITTLE NOTEBOOK
  * CPU: EMP-200 (FSM CO PROCESSOR)
  * CLOCK: ~32kHz board stepper
  * 
@@ -8,14 +8,14 @@
  * **************************************************
  * MEM_CHIP REGIONS OF MEMORY PYSHICAL
  * **************************************************
- * 080-0FF = STD TEMP (128B aux regs, cleared on BRK)
- * 100-33F = RESERVED (for 8-pin NVRAM programmer)
- * 340-3FF = TILE VRAM 16x12 = 192 bytes (C0h)
- * 400-6FF = DEVICES MMIO (LOGICAL_CHIP OWNS THIS REGION)
- * 700-EFF = USER RAM 2K (code+data, cleared on BRK)
- * F00-FFB = STD ROM (NO CARD0 firmware)
- * FFC-FFF = RESET VEC (JMP F00h)
- * FFF     = MEM EOF PYSHIC SPACE END + LAST BYTE OF ROM
+ * 0080-00FF = STD TEMP (128B aux regs, cleared on BRK)
+ * 0100-033F = RESERVED (for 8-pin NVRAM programmer)
+ * 0340-03FF = TILE VRAM 16x12 = 192 bytes (C0h)
+ * 0400-06FF = DEVICES MMIO (LOGICAL_CHIP OWNS THIS REGION)
+ * 0700-0EFF = USER RAM 2K (code+data, cleared on BRK)
+ * 0F00-0FFB = STD ROM (NO CARD0 firmware)
+ * 0FFC-0FFF = RESET VEC (JMP F00h)
+ * 1000-2000 = FIRMWARE 2
  * 
  * **************************************************
  * LOGICAL_CHIP ABSOLUTE ADDRESSE FROM THE START MMIO ZONE
@@ -25,7 +25,7 @@
  * 403 R_ WORD - READ 2 BYTES CARD0 (big endian)
  * 405 _W BYTE - STEP READER
  * 430 R_ BYTE - GPU_SOON FLAG (WARN before REFRESH-REST, anti-tear)
- * 440 R_ BYTE - KBD queue pop/shift / push
+ * 440 RW BYTE - KBD queue pop/shift / push / write= set keyboard emulate mode
  * 441 R_ BYTE - LIGHTPEN X
  * 442 R_ BYTE - LIGHTPEN Y
  * 443 _W BYTE - LIGHTPEN CTRL 0b0000000C (C=disable)
@@ -94,6 +94,7 @@ let cpu = new emp.cpuGen2();
 let chipau = new AudioChip()
 
 // Hardware Parameters
+let keyboard_compatibility_mode = false;
 let isDraggin = false;
 let showingCursor = false;
 let pentouchx = 0;
@@ -103,6 +104,7 @@ let kybuf = [];
 let turbo_mode = false;
 let pc = 0xFFC;
 let sp = 0xF00;
+let mem_limit = 0xFFF;
 let lif = false;
 let rtins = 0;
 let card = null;
@@ -113,6 +115,7 @@ let maxRenderRegresiveCountValue = countQuedRender;
 let vram = new Array(16*12).fill(0).map(v => Math.floor(Math.random() * 255))
 let spritePalette = new Array(256).fill(0x004004040040400400004004040040400400n)
 let rom = emp.g2asm.parseAsm(await loadFile('./bios.asm')).result
+let rom2 = emp.g2asm.parseAsm(await loadFile('./fd2.asm')).result
 let vdclrPre = ['#000','#888','#800','#740','#880','#680','#228','#508','#444','#ddd','#f44','#d80','#cc0','#9f4','#aae','#548']
 let vdclr = [...vdclrPre]
 let LogicalChip = {
@@ -180,6 +183,8 @@ let LogicalChip = {
         }
 
         // Keyboard Controller
+        else if (port == 0x40)
+            keyboard_compatibility_mode = true;
         else if (port == 0x43) {
             showingCursor = Boolean(data & 1);
         }
@@ -209,6 +214,12 @@ let LogicalChip = {
             this.chipausfx = data;
         else if (port == 0x53)
             chipau.switchChannelFreq((this.chipausfx << 8) | data);
+    
+        // Memory Limit Map
+        else if (port == 0x70) 
+            mem_limit = (mem_limit & 0xFF) | (data << 8);
+        else if (port == 0x71)
+            mem_limit = (mem_limit & 0xFF00) | data;
     }
 }
 
@@ -357,7 +368,9 @@ function EMULATORReset() {
         spritePalette[index] = knowPresets[index - 32];
     }
 
+    mem_limit = 0xFFF;
     vdclr = [...vdclrPre]
+    keyboard_compatibility_mode = false;
 
     ram0.fill(0);
     tmpm0.fill(0);
@@ -410,7 +423,11 @@ Steps for refresh:${countQuedRender}
     pc = pc + kat
 }
 function CPUReadMake(adr2) {
-    let adr = adr2 & 0xFFF;
+    let adr = adr2 & mem_limit;
+
+    // Memory ROM2
+    if (adr >= 0x1000 && adr < 0x2000)
+        return rom2[adr - 0x1000]
 
     //TmpMem0
     if (adr >= 0x80 && adr < 0x100) 
@@ -435,7 +452,7 @@ function CPUReadMake(adr2) {
     return 0;
 };
 function CPUWriteMake(adr2, val) {
-    let adr = adr2 & 0xFFF;
+    let adr = adr2 & mem_limit;
 
     // TmpMem0
     if (adr >= 0x80 && adr < 0x100) 
@@ -490,26 +507,43 @@ function EMULATORInit() {
 }
 function EMULATORKeyIntercept(ev) {
     let k = ev.key.toUpperCase();
-    if (k == 'K') {
-        videoctx.canvas.requestPointerLock();
-    }
 
-    else if (k == 'E') {
-        CARD0Eject();
+    let charCode = k.charCodeAt(0);
+    if (keyboard_compatibility_mode) {
+        let compkeys = {
+            65: 1,
+            66: 2,
+            88: 3,
+            89: 4,
+            87: 5,
+            90: 6,
+            76: 7,
+            74: 8,
+            86: 10,
+            78: 12,
+            48: 20,
+            49: 21,
+            50: 22,
+            51: 23,
+            52: 24,
+            53: 25,
+            54: 26,
+            55: 27,
+            56: 28,
+            57: 29
+        }
+        if (charCode in compkeys) {
+            kybuf.push(compkeys[charCode]);
+        }
+        else if (k == 'ENTER') {
+            kybuf.push(10);
+        }
     }
-
-    else if (k == 'M') {
-        showerMouseHs = !showerMouseHs;
+    else if (k.length == 1) {
+        kybuf.push(charCode);
     }
-
-    else if (k == 'I') {
-        document.getElementById('CardSdSelect').click()
-    }
-
-    if(k in keysmap){
-        ev.preventDefault();
-        if(typeof keysmap[k] == 'function') keysmap[k]();
-        else kybuf.push(keysmap[k]);
+    else if (k == 'ENTER') {
+        kybuf.push(10);
     }
 }
 function goFullscreen(){
@@ -603,14 +637,34 @@ videoctx.canvas.addEventListener('mousemove', (ev) => {
     }
     }
 });
-document.addEventListener('keydown', e => {
-  if(e.key === 'f' || e.key === 'F'){
-    if(!document.fullscreenElement) goFullscreen();
-    else exitFullscreen();
-  }
-});
+window.gfulls = goFullscreen;
 window.sendIonj = function(s) {
-    kybuf.push(s)
+    if (keyboard_compatibility_mode) {
+                let compkeys = {
+            65: 1,
+            66: 2,
+            88: 3,
+            89: 4,
+            87: 5,
+            90: 6,
+            76: 7,
+            74: 8,
+            86: 10,
+            78: 12,
+            48: 20,
+            49: 21,
+            50: 22,
+            51: 23,
+            52: 24,
+            53: 25,
+            54: 26,
+            55: 27,
+            56: 28,
+            57: 29
+        }
+        kybuf.push(compkeys[s])
+    }
+    else kybuf.push(s)
 }
 cardstyle.addEventListener('click', () => {
     if (card) {
@@ -628,6 +682,13 @@ window.palette = spritePalette
 EMULATORInit();
 EMULATORReset();
 window.halted = true;
+
+window.cpu = {
+    r: CPUReadMake,
+    w: CPUWriteMake,
+}
+
+console.log(rom2.length)
 
 // Cpu Instruction Autoexecuted
 setInterval(function () {
